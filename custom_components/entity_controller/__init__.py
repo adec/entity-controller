@@ -116,6 +116,9 @@ ENTITY_SCHEMA = vol.Schema(
         vol.Optional(CONF_TRIGGER_ON_ACTIVATE, default=None): cv.entity_ids,
         vol.Optional(CONF_TRIGGER_ON_DEACTIVATE, default=None): cv.entity_ids,
         vol.Optional(CONF_STATE_ENTITIES, default=[]): cv.entity_ids,
+        vol.Optional(CONF_BLOCK_MODE, default=CONF_BLOCK_MODE_ON): vol.All(
+            vol.Lower, vol.Any(CONF_BLOCK_MODE_ON, CONF_BLOCK_MODE_OFF)
+        ),
         vol.Optional(CONF_BLOCK_TIMEOUT, default=None): cv.positive_int,
         vol.Optional(CONF_NIGHT_MODE, default=None): MODE_SCHEMA,
         vol.Optional(CONF_STATE_ATTRIBUTES_IGNORE, default=[]): cv.ensure_list,
@@ -174,7 +177,7 @@ async def async_setup(hass, config):
         trigger="sensor_on",
         source="idle",
         dest="blocked",
-        conditions=["is_state_entities_on"],
+        conditions=["is_state_entities_on", "is_block_mode_on"],
     )
 
     # Blocked
@@ -431,6 +434,7 @@ class Model:
         self.triggerOnActivate = []
         self.timer_handle = None
         self.block_timer_handle = None
+        self.block_mode = None
         self.sensor_type = None
         self.night_mode = None
         self.state_attributes_ignore = []
@@ -753,6 +757,10 @@ class Model:
     def does_sensor_reset_timer(self):
         return self.config[CONF_SENSOR_RESETS_TIMER]
 
+    def is_block_mode_off(self):
+        return self.block_mode == CONF_BLOCK_MODE_OFF
+
+
     # =====================================================
     # S T A T E   M A C H I N E   C A L L B A C K S
     # =====================================================
@@ -1039,6 +1047,9 @@ class Model:
 
         if CONF_SENSOR_TYPE in config:
             self.sensor_type = config.get(CONF_SENSOR_TYPE)
+
+        if CONF_BLOCK_MODE in config:
+            self.block_mode = config.get(CONF_BLOCK_MODE)
 
         self.update(sensor_type=self.sensor_type)
 
