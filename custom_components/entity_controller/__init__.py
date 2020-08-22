@@ -757,8 +757,8 @@ class Model:
     def does_sensor_reset_timer(self):
         return self.config[CONF_SENSOR_RESETS_TIMER]
 
-    def is_block_mode_off(self):
-        return self.block_mode == CONF_BLOCK_MODE_OFF
+    def is_block_mode_on(self):
+        return self.block_mode == CONF_BLOCK_MODE_ON
 
 
     # =====================================================
